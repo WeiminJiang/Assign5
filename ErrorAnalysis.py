@@ -31,7 +31,7 @@ def boundedness(phi):
     '''
     nx = len(phi)
     # if test = True: bounded, return 0
-    # if test = False: return 1, return 1
+    # if test = False: unbouned, return 1
     test = True
     for ix in range(nx):
         if phi[ix] - 0. < 0. or phi[ix] - 1. > 0.: 
