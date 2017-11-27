@@ -5,6 +5,7 @@ Created on Tue Nov 07 14:15:53 2017
 
 import numpy as np
 from ErrorAnalysis import total_variation
+from ErrorAnalysis import boundedness
 
 
 def FTBS(phiOld, c, nt):
@@ -12,6 +13,9 @@ def FTBS(phiOld, c, nt):
     25836326
     '''
     nx = len(phiOld)
+    TV = np.zeros(nt + 1)
+    TV[0] = total_variation(phiOld)
+    bb = np.zeros(nt)
 
     phi = np.zeros(len(phiOld), dtype='float')
 
@@ -19,8 +23,9 @@ def FTBS(phiOld, c, nt):
         for j in range(0, nx):
             phi[j] = phiOld[j] - c * (phiOld[(j) % nx] - phiOld[(j - 1) % nx])
         phiOld = phi.copy()
-
-    return phiOld
+        TV[it + 1] = total_variation(phiOld)
+        bb[it] = boundedness(phiOld)
+    return phiOld, TV, bb
 
 
 def FTCS(phiOld, c, nt):
@@ -28,6 +33,7 @@ def FTCS(phiOld, c, nt):
     23009181
     '''
     nx = len(phiOld)
+    bb = np.zeros(nt)
 
     # New time-step array for phi#
     phi = np.zeros(len(phiOld), dtype='float')
@@ -37,8 +43,9 @@ def FTCS(phiOld, c, nt):
         for j in range(0, nx):
             phi[j] = phiOld[j] - 0.5 * c * (phiOld[(j + 1) % nx] - phiOld[(j - 1) % nx])
         phiOld = phi.copy()
+        bb[it] = boundedness(phiOld)
 
-    return phiOld
+    return phiOld, bb
 
 
 def CTCS(phi, c, nt):
@@ -49,6 +56,9 @@ def CTCS(phi, c, nt):
     23012207
     '''
     nx = len(phi)
+    TV = np.zeros(nt + 1)
+    bb = np.zeros(nt)
+    TV[0] = total_variation(phi)
 
     # error handling
     if (nx <= 0):
@@ -79,8 +89,10 @@ def CTCS(phi, c, nt):
     
         phiOld = phi.copy()
         phi = phiNew.copy()
+        TV[it + 1] = total_variation(phi)
+        bb[it] = boundedness(phi)
 
-    return phi
+    return phi, TV, bb
 
 
 def CTBS(phi, c, nt):
@@ -94,6 +106,7 @@ def CTBS(phi, c, nt):
 
     # Store length of phi to aviod recalculating each time
     nx = len(phi)
+    bb = np.zeros(nt)
 
     if (nx == 0):
         raise Exception('Phi has length of 0. It needs to have a positive length.')
@@ -129,8 +142,8 @@ def CTBS(phi, c, nt):
             phi_n[(j - 1) % nx])
         phi_n_minus_1 = phi_n.copy()
         phi_n = phi_new.copy()
-
-    return phi_new
+        bb[n] = boundedness(phi_new)
+    return phi_new, bb
 
 
 def CTCS_art_diff(phi, c, d, nt):
@@ -142,6 +155,7 @@ def CTCS_art_diff(phi, c, d, nt):
     '''
 
     nx = len(phi)
+    bb = np.zeros(nt)
 
     # error handling
     if (nx <= 0):
@@ -180,8 +194,9 @@ def CTCS_art_diff(phi, c, d, nt):
         # set arrays ready for next time-step
         phiOld = phi.copy()
         phi = phiNew.copy()
+        bb[it] = boundedness(phi)
 
-    return phi
+    return phi, bb
 
 
 def TVD(phi, c, nt):
@@ -193,6 +208,7 @@ def TVD(phi, c, nt):
 
     nx = len(phi)
     TV = np.zeros(nt + 1)
+    bb = np.zeros(nt)
 
     # Error Handling
     if (nx == 0):
@@ -245,8 +261,9 @@ def TVD(phi, c, nt):
 
         phi = phi_next.copy()
         TV[n + 1] = total_variation(phi)
+        bb[n] = boundedness(phi)
 
-    return phi_next, TV
+    return phi_next, TV, bb
 
 
 def limiter_function(phi, j):
@@ -274,6 +291,7 @@ def WB(phiOld, c, nt):
     23009181
     '''
     nx = len(phiOld)
+    bb = np.zeros(nt)
 
     phi = np.zeros(len(phiOld), dtype='float')
 
@@ -285,8 +303,8 @@ def WB(phiOld, c, nt):
                                             (1 - c) * phiOld[(j - 2) % nx])
 
         phiOld = phi.copy()
-
-    return phiOld
+        bb[it] = boundedness(phiOld)
+    return phiOld, bb
 
 
 def Lax_Wendroff(phiOld, c, nt):
@@ -295,7 +313,9 @@ def Lax_Wendroff(phiOld, c, nt):
     '''
     nx = len(phiOld)
     phi = np.zeros(len(phiOld), dtype='float')
-
+    TV = np.zeros(nt + 1)
+    bb = np.zeros(nt)
+    TV[0] = total_variation(phiOld)
 
     # Testing Code
     if nx <= 0:
@@ -309,11 +329,11 @@ def Lax_Wendroff(phiOld, c, nt):
     if test == False:
         raise Exception('Argument phi should not always be zero at all points.')
 
-    if not (isinstance(nt, int)):
-        raise TypeError('Argument nt should be an integer.')
+#    if not (isinstance(nt, int)):
+#        raise TypeError('Argument nt should be an integer.')
 
-    if nt <= 0:
-        raise ValueError('Argument nt should be > 0.')
+#    if nt <= 0:
+#        raise ValueError('Argument nt should be > 0.')
 
     if not (isinstance(c, float)):
         raise TypeError('Argument c should be a float.')
@@ -325,6 +345,6 @@ def Lax_Wendroff(phiOld, c, nt):
                                             - (1.0 + c)*phiOld[(j - 1) % nx] - (1.0 - c)*phiOld[(j) % nx])
 
         phiOld = phi.copy()
-
-
-    return phiOld
+        TV[it + 1] = total_variation(phi)
+        bb[it] = boundedness(phiOld)
+    return phiOld, TV, bb

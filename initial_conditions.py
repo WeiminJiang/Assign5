@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov 07 14:06:47 2017
+
+@author: Daniel
 """
 
 import numpy as np
 
 def create_x(x_min, dx, nx):
     '''
-    Return the spatial values from x_min in steps of dx for nx spatial steps
-    in an array 
+    Calculate the spatial values
     25819903
     '''
     
@@ -20,7 +21,7 @@ def create_x(x_min, dx, nx):
     
 def initial_conditions_1(x):
     '''
-    Return the first set of initial conditions
+    Calculate the first set of initial conditions
     25819903
     '''
     
@@ -36,7 +37,7 @@ def initial_conditions_1(x):
 
 def initial_conditions_2(x):
     '''
-    Return the second set of initial conditions
+    Calculate the second set of initial conditions
     25819903
     '''
     
